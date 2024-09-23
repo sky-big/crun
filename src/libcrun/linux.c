@@ -3909,6 +3909,9 @@ configure_init_status (struct init_status_s *ns, libcrun_container_t *container,
       if (UNLIKELY (value < 0))
         return crun_make_error (err, 0, "invalid namespace type: `%s`", def->linux->namespaces[i]->type);
 
+      if (ns->all_namespaces & value)
+        return crun_make_error (err, 0, "duplicate namespace type: `%s`", def->linux->namespaces[i]->type);
+
       ns->all_namespaces |= value;
 
       if (def->linux->namespaces[i]->path == NULL)
@@ -4806,7 +4809,6 @@ libcrun_run_linux_container (libcrun_container_t *container, container_entrypoin
             {
               init_status.join_pidns = true;
               init_status.idx_pidns_to_join_immediately = i;
-              init_status.namespaces_to_unshare &= ~CLONE_NEWPID;
             }
           break;
 
@@ -4816,7 +4818,6 @@ libcrun_run_linux_container (libcrun_container_t *container, container_entrypoin
           else
             {
               init_status.idx_timens_to_join_immediately = i;
-              init_status.namespaces_to_unshare &= ~CLONE_NEWTIME;
             }
           break;
         }
